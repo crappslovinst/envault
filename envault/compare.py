@@ -43,7 +43,7 @@ def compare_vaults(
 def format_compare_result(result: dict, show_unchanged: bool = False) -> str:
     """Render a compare result as a human-readable string."""
     lines = [
-        f"Comparing '{result['vault_a']}' → '{result['vault_b']}'",
+        f"Comparing '{result['vault_a']}' \u2192 '{result['vault_b']}'",
         f"  added: {result['added']}  removed: {result['removed']}  "
         f"changed: {result['changed']}  unchanged: {result['unchanged']}",
         "",
@@ -51,3 +51,12 @@ def format_compare_result(result: dict, show_unchanged: bool = False) -> str:
     diff_lines = format_diff(result["changes"], show_unchanged=show_unchanged)
     lines.extend(diff_lines)
     return "\n".join(lines)
+
+
+def has_differences(result: dict) -> bool:
+    """Return True if the compare result contains any meaningful differences.
+
+    Useful for scripting or CI checks where you only care whether the two
+    vaults diverge, not the full diff details.
+    """
+    return result["added"] > 0 or result["removed"] > 0 or result["changed"] > 0
