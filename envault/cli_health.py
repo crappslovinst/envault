@@ -28,3 +28,16 @@ def cmd_health(vault_name: str, password: str, required_keys: list[str] | None =
             "summary": "",
             "error": str(exc),
         }
+
+
+def cmd_health_summary(vault_name: str, password: str, required_keys: list[str] | None = None) -> str:
+    """
+    Return a human-readable health summary string for a vault.
+
+    Convenience wrapper around cmd_health that returns just the summary text,
+    or an error message prefixed with "Error: " if the check fails.
+    """
+    result = cmd_health(vault_name, password, required_keys=required_keys)
+    if result["error"]:
+        return f"Error: {result['error']}"
+    return result["summary"]
