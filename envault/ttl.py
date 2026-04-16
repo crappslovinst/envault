@@ -70,3 +70,16 @@ def is_expired(vault_name: str, password: str) -> bool:
     if info is None:
         return False
     return info["expired"]
+
+
+def enforce_ttl(vault_name: str, password: str) -> None:
+    """Raise TTLError if the vault has an expired TTL.
+
+    Useful as a guard at the start of operations that should not
+    proceed on an expired vault.
+    """
+    info = get_ttl(vault_name, password)
+    if info is not None and info["expired"]:
+        raise TTLError(
+            f"Vault '{vault_name}' has expired (TTL of {info['ttl_seconds']}s passed)."
+        )
