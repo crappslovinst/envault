@@ -53,6 +53,19 @@ def find_references(env: dict) -> dict:
     return refs
 
 
+def find_undefined_references(env: dict) -> dict:
+    """Return a map of key -> list of referenced keys that don't exist in env.
+
+    Useful for detecting typos or missing variables before attempting resolution.
+    """
+    undefined = {}
+    for key, refs in find_references(env).items():
+        missing = [ref for ref in refs if ref not in env]
+        if missing:
+            undefined[key] = missing
+    return undefined
+
+
 def format_resolve_result(resolved: dict, original: dict) -> str:
     lines = []
     for key in sorted(resolved):
