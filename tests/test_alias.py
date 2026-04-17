@@ -95,3 +95,12 @@ def test_multiple_aliases_coexist(mock_alias_deps):
     aliases = list_aliases("myapp", "secret")
     assert "alpha" in aliases
     assert "beta" in aliases
+
+
+def test_set_alias_overwrite_returns_updated_action(mock_alias_deps):
+    """Setting an alias that already exists should update it and reflect that in the result."""
+    mock_alias_deps["myapp"] = {"_meta": {"aliases": {"prod": "myapp"}}}
+    result = set_alias("myapp", "prod", "secret")
+    assert result["alias"] == "prod"
+    assert result["vault"] == "myapp"
+    assert result["action"] in ("set", "updated")
