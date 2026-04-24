@@ -54,6 +54,16 @@ def test_tokenize_vault_root_and_leaf(mock_get_env):
     assert result["APP_DB_HOST"]["leaf"] == "HOST"
 
 
+def test_tokenize_vault_single_segment_root_equals_leaf(mock_get_env):
+    """For a single-segment key, root and leaf should be the same value."""
+    single_seg_env = {"SIMPLE": "value"}
+    with patch("envault.env_tokenize.get_env_vars", return_value=single_seg_env):
+        result = tokenize_vault("myvault", "pass")
+        assert result["SIMPLE"]["root"] == "SIMPLE"
+        assert result["SIMPLE"]["leaf"] == "SIMPLE"
+        assert result["SIMPLE"]["depth"] == 1
+
+
 def test_tokenize_vault_prefix_filter(mock_get_env):
     result = tokenize_vault("myvault", "pass", prefix_filter="APP")
     assert all(k.startswith("APP") for k in result)
