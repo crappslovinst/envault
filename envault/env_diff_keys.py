@@ -1,6 +1,5 @@
-"""env_diff_keys.py — compare key sets between two vaults without revealing values."""
-
 from envault.vault_ops import get_env_vars
+from envault.storage import vault_exists
 
 
 class DiffKeysError(Exception):
@@ -8,16 +7,14 @@ class DiffKeysError(Exception):
 
 
 def diff_keys(vault_a: str, password_a: str, vault_b: str, password_b: str) -> dict:
-    """Return a structured diff of key sets between two vaults."""
-    try:
-        env_a = get_env_vars(vault_a, password_a)
-    except Exception as e:
-        raise DiffKeysError(f"Cannot read vault '{vault_a}': {e}")
+    """Compare keys between two vaults without comparing values."""
+    if not vault_exists(vault_a):
+        raise DiffKeysError(f"Vault not found: {vault_a}")
+    if not vault_exists(vault_b):
+        raise DiffKeysError(f"Vault not found: {vault_b}")
 
-    try:
-        env_b = get_env_vars(vault_b, password_b)
-    except Exception as e:
-        raise DiffKeysError(f"Cannot read vault '{vault_b}': {e}")
+    env_a = get_env_vars(vault_a, password_a)
+    env_b = get_env_vars(vault_b, password_b)
 
     keys_a = set(env_a.keys())
     keys_b = set(env_b.keys())
@@ -42,13 +39,17 @@ def diff_keys(vault_a: str, password_a: str, vault_b: str, password_b: str) -> d
 
 def format_diff_keys_result(result: dict) -> str:
     lines = [
-        f"Key diff: '{result['vault_a']}' vs '{result['vault_b']}'",
+        f"Key diff: {result['vault_a']} vs {result['vault_b']}",
         f"  Shared keys   : {result['shared']}",
-        f"  Only in A     : {result['unique_to_a']}",
-        f"  Only in B     : {result['unique_to_b']}",
+        f"  Only in {result['vault_a']}: {result['unique_to_a']}",
+        f"  Only in {result['vault_b']}: {result['unique_to_b']}",
     ]
     if result["only_in_a"]:
-        lines.append("  Keys only in A: " + ", ".join(result["only_in_a"]))
+        lines.append(f"  Keys only in {result['vault_a']}:")
+        for k in result["only_in_a"]:
+            lines.append(f"    - {k}")
     if result["only_in_b"]:
-        lines.append("  Keys only in B: " + ", ".join(result["only_in_b"]))
+        lines.append(f"  Keys only in {result['vault_b']}:")
+        for k in result["only_in_b"]:
+            lines.append(f"    + {k}")
     return "\n".join(lines)
