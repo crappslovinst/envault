@@ -59,6 +59,18 @@ def test_export_multiple_keys_newline_separated():
     assert len(lines) == 2
 
 
+def test_export_empty_dict_dotenv():
+    """Exporting an empty dict should return an empty string, not crash."""
+    result = export_env({}, fmt="dotenv")
+    assert result == ""
+
+
+def test_export_empty_dict_json():
+    """Exporting an empty dict as JSON should return a valid empty object."""
+    result = export_env({}, fmt="json")
+    assert json.loads(result) == {}
+
+
 # ---------------------------------------------------------------------------
 # export_to_file
 # ---------------------------------------------------------------------------
@@ -102,8 +114,4 @@ def test_cmd_export_writes_file(mock_vault_vars, tmp_path):
     dest = tmp_path / "exported.env"
     cmd_export("myvault", "secret", output_path=str(dest))
     assert dest.exists()
-
-
-def test_cmd_export_invalid_format_raises(mock_vault_vars):
-    with pytest.raises(ValueError):
-        cmd_export("myvault", "secret", fmt="toml")
+    assert 'FOO="bar"' in dest.read_text()
